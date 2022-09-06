@@ -93,30 +93,34 @@ impl Solution {
         tiles
     }
 
+    fn neighbors(i: usize, j: usize, n: usize, m: usize) -> Vec<(usize, usize)> {
+        let mut neighs = Vec::with_capacity(4);
+
+        if i > 0 {
+            neighs.push((i - 1, j));
+        }
+
+        if i < n - 1 {
+            neighs.push((i + 1, j));
+        }
+
+        if j > 0 {
+            neighs.push((i, j - 1));
+        }
+
+        if j < m - 1 {
+            neighs.push((i, j + 1));
+        }
+
+        neighs
+    }
+
     fn expand_tile(i: usize, j: usize, n: usize, m: usize, tiles: &mut [Vec<Tile>]) {
         let tile = tiles[i][j].clone();
 
-        if i > 0 && tile.height <= tiles[i - 1][j].height {
-            if Tile::combine_oceans(&tile, &mut tiles[i - 1][j]) {
-                Self::expand_tile(i - 1, j, n, m, tiles);
-            };
-        }
-
-        if i < n - 1 && tile.height <= tiles[i + 1][j].height {
-            if Tile::combine_oceans(&tile, &mut tiles[i + 1][j]) {
-                Self::expand_tile(i + 1, j, n, m, tiles);
-            };
-        }
-
-        if j > 0 && tile.height <= tiles[i][j - 1].height {
-            if Tile::combine_oceans(&tile, &mut tiles[i][j - 1]) {
-                Self::expand_tile(i, j - 1, n, m, tiles);
-            };
-        }
-
-        if j < m - 1 && tile.height <= tiles[i][j + 1].height {
-            if Tile::combine_oceans(&tile, &mut tiles[i][j + 1]) {
-                Self::expand_tile(i, j + 1, n, m, tiles);
+        for (ni, nj) in Self::neighbors(i, j, n, m) {
+            if tile.height <= tiles[ni][nj].height && Tile::combine_oceans(&tile, &mut tiles[ni][nj]) {
+                Self::expand_tile(ni, nj, n, m, tiles);
             };
         }
     }
