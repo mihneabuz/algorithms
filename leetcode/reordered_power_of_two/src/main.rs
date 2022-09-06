@@ -30,7 +30,7 @@ trait Digits {
 }
 
 impl<T: PrimInt + From<i32>> Digits for T {
-    fn digits(&self) -> DigitsIterator<Self> where Self: Sized {
+    fn digits(&self) -> DigitsIterator<Self> {
         DigitsIterator::new(*self)
     }
 }
