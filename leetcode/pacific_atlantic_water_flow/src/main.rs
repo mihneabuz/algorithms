@@ -1,58 +1,131 @@
 struct Solution {}
 
-type Tile = (bool, bool, bool);
+#[derive(Clone, Debug)]
+struct Tile {
+    height: i32,
+    pacific: bool,
+    atlantic: bool,
+}
+
+impl Tile {
+    pub fn new(height: i32) -> Self {
+        Tile {
+            height,
+            pacific: false,
+            atlantic: false,
+        }
+    }
+
+    pub fn combine_oceans(from: &Tile, to: &mut Tile) -> bool {
+        let res = (from.atlantic && !to.atlantic) || (from.pacific && !to.pacific);
+
+        to.atlantic |= from.atlantic;
+        to.pacific |= from.pacific;
+
+        res
+    }
+
+    pub fn both(&self) -> bool {
+        self.pacific && self.atlantic
+    }
+
+    pub fn set(&mut self, pacific: bool, atlantic: bool) {
+        self.pacific = pacific;
+        self.atlantic = atlantic;
+    }
+}
 
 impl Solution {
     pub fn pacific_atlantic(heights: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
         let (n, m) = (heights.len(), heights[0].len());
 
-        let mut visited = vec![vec![(false, false, false); m]; n];
+        if m == 1 {
+            return (0..n).map(|i| vec![i as i32, 0]).collect();
+        }
+
+        if n == 1 {
+            return (0..m).map(|j| vec![0, j as i32]).collect();
+        }
+
+        let mut tiles = Self::init_tiles(n, m, heights);
+
+        for i in 0..n {
+            Self::expand_tile(i, 0, n, m, &mut tiles);
+            Self::expand_tile(i, m - 1, n, m, &mut tiles);
+        }
+
+        for j in 0..m {
+            Self::expand_tile(0, j, n, m, &mut tiles);
+            Self::expand_tile(n - 1, j, n, m, &mut tiles);
+        }
+
         let mut results = Vec::new();
         for i in 0..n {
             for j in 0..m {
-                let res = Solution::process(i as i32, j as i32, n as i32, m as i32, &heights, &mut visited);
-                if res.1 && res.2 {
+                if tiles[i][j].both() {
                     results.push(vec![i as i32, j as i32]);
                 }
             }
         }
 
-        for row in visited.iter() {
-            println!("{:?}", row);
-        }
-
         results
     }
 
-    fn process(i: i32, j: i32, n: i32, m: i32, heights: &[Vec<i32>], visited: &mut [Vec<Tile>]) -> Tile {
-        if i < 0 {
-            (true, true, false)
-        } else if j < 0 { 
-            (true, true, false)
-        } else if i >= n {
-            (true, false, true)
-        } else if j >= m { 
-            (true, false, true)
-        } else if visited[i as usize][j as usize].0 {
-            visited[i as usize][j as usize]
-        } else {
-            visited[i as usize][j as usize] = (true, false, false);
-            let result = [(i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)]
-                .into_iter()
-                .map(|(di, dj)| (i + di, j + dj))
-                .filter(|(ni, nj)| heights[*ni as usize][*nj as usize] <= heights[i as usize][j as usize])
-                .map(|(ni, nj)| Solution::process(ni, nj, n, m, heights, visited))
-                .fold((true, false, false), |acc, res| (true, acc.1 || res.1, acc.2 || res.2));
-            visited[i as usize][j as usize] = result;
+    fn init_tiles(n: usize, m: usize, heights: Vec<Vec<i32>>) -> Vec<Vec<Tile>> {
+        let mut tiles: Vec<Vec<Tile>> = heights
+            .into_iter()
+            .map(|row| row.into_iter().map(|height| Tile::new(height)).collect())
+            .collect();
 
-            result
+        for i in 0..n {
+            tiles[i][0].set(true, false);
+            tiles[i][m - 1].set(false, true);
         }
+
+        for j in 0..m {
+            tiles[0][j].set(true, false);
+            tiles[n - 1][j].set(false, true);
+        }
+
+        tiles[0][m - 1].set(true, true);
+        tiles[n - 1][0].set(true, true);
+
+        tiles
     }
 
+    fn expand_tile(i: usize, j: usize, n: usize, m: usize, tiles: &mut [Vec<Tile>]) {
+        let tile = tiles[i][j].clone();
+
+        if i > 0 && tile.height <= tiles[i - 1][j].height {
+            if Tile::combine_oceans(&tile, &mut tiles[i - 1][j]) {
+                Self::expand_tile(i - 1, j, n, m, tiles);
+            };
+        }
+
+        if i < n - 1 && tile.height <= tiles[i + 1][j].height {
+            if Tile::combine_oceans(&tile, &mut tiles[i + 1][j]) {
+                Self::expand_tile(i + 1, j, n, m, tiles);
+            };
+        }
+
+        if j > 0 && tile.height <= tiles[i][j - 1].height {
+            if Tile::combine_oceans(&tile, &mut tiles[i][j - 1]) {
+                Self::expand_tile(i, j - 1, n, m, tiles);
+            };
+        }
+
+        if j < m - 1 && tile.height <= tiles[i][j + 1].height {
+            if Tile::combine_oceans(&tile, &mut tiles[i][j + 1]) {
+                Self::expand_tile(i, j + 1, n, m, tiles);
+            };
+        }
+    }
 }
 
 fn main() {
-    let input = vec![
+    let input1 = vec![vec![10, 10, 10], vec![10, 1, 10], vec![10, 10, 10]];
+
+    let input2 = vec![
         vec![1, 2, 2, 3, 5],
         vec![3, 2, 3, 4, 4],
         vec![2, 4, 5, 3, 1],
@@ -60,6 +133,24 @@ fn main() {
         vec![5, 1, 1, 2, 4],
     ];
 
-    let res = Solution::pacific_atlantic(input);
-    println!("{:?}", res);
+    let input3 = vec![
+        vec![3, 3, 3, 3, 3, 3],
+        vec![3, 0, 3, 3, 0, 3],
+        vec![3, 3, 3, 3, 3, 3],
+    ];
+
+    let input4 = vec![
+        vec![13],
+        vec![4],
+        vec![19],
+        vec![10],
+        vec![1],
+        vec![11],
+        vec![5],
+    ];
+
+    println!("{:?}", Solution::pacific_atlantic(input1));
+    println!("{:?}", Solution::pacific_atlantic(input2));
+    println!("{:?}", Solution::pacific_atlantic(input3));
+    println!("{:?}", Solution::pacific_atlantic(input4));
 }
