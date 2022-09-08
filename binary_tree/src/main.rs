@@ -63,7 +63,7 @@ struct Tree<T: Eq + Ord> {
 
 impl<T> Tree<T>
 where
-    T: Eq + Ord,
+    T: Eq + Ord + Copy,
 {
     pub fn new() -> Self {
         Self { root: None }
@@ -130,6 +130,53 @@ where
             },
         }
     }
+
+    pub fn inorder(&self) -> Vec<T> {
+        match &self.root {
+            None => vec![],
+            Some(node) => Tree::inorder_recursive(node),
+        }
+    }
+
+    fn inorder_recursive(node: &Box<TreeNode<T>>) -> Vec<T> {
+        let mut res = Vec::new();
+
+        if let Some(left) = &node.left {
+            res.extend(Tree::inorder_recursive(left));
+        }
+
+        res.push(node.val);
+
+        if let Some(right) = &node.right{
+            res.extend(Tree::inorder_recursive(right));
+        }
+
+        res
+    }
+
+    pub fn inorder_iterative(&self) -> Vec<T> {
+        if self.root.is_none() {
+            return Vec::new();
+        }
+
+        let mut result = Vec::new();
+        let mut stack = Vec::new();
+        let mut current = self.root.as_ref();
+
+        while !stack.is_empty() || current.is_some() {
+            while let Some(node) = current {
+                stack.push(node);
+                current = node.left.as_ref();
+            }
+
+            if let Some(node) = stack.pop() {
+                result.push(node.val);
+                current = node.right.as_ref();
+            }
+        }
+
+        result
+    }
 }
 
 impl<T> From<TreeNode<T>> for Option<Box<TreeNode<T>>>
@@ -162,4 +209,7 @@ fn main() {
 
     println!("find {}: {}", 9, tree.find(9));
     println!("find {}: {}", 4, tree.find(4));
+
+    println!("inorder: {:?}", tree.inorder());
+    println!("inorder: {:?}", tree.inorder_iterative());
 }
