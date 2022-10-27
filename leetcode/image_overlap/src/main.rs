@@ -1,3 +1,5 @@
+use std::cmp::{min, max};
+
 struct Solution {}
 
 impl Solution {
@@ -11,14 +13,12 @@ impl Solution {
 
     pub fn overlap(img1: &[Vec<i32>], img2: &[Vec<i32>], t: (i32, i32)) -> i32 {
         let mut count = 0;
-        let n = img1.len();
+        let n = img1.len() as i32;
 
-        for i in 0..n {
-            for j in 0..n {
-                let (ti, tj) = (i as i32 + t.0, j as i32 + t.1);
-                if ti >= 0 && tj >= 0 && ti < n as i32 && tj < n as i32 {
-                    count += img1[ti as usize][tj as usize] & img2[i][j];
-                }
+        for i in max(0, t.0)..min(n, n + t.0) {
+            for j in max(0, t.1)..min(n, n + t.1) {
+                let (ti, tj) = (i - t.0, j - t.1);
+                count += img1[ti as usize][tj as usize] & img2[i as usize][j as usize];
             }
         }
 
