@@ -1,4 +1,4 @@
-use std::collections::{VecDeque, BinaryHeap};
+use std::collections::VecDeque;
 use std::cmp;
 
 const DIRECTIONS: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
@@ -16,10 +16,10 @@ impl Solution {
         let mut visited = vec![vec![-1; m]; n];
         visited[0][0] = k;
 
-        let mut queue = BinaryHeap::new();
-        queue.push((cmp::Reverse(0), k, 0, 0));
+        let mut queue = VecDeque::new();
+        queue.push_back((cmp::Reverse(0), k, 0, 0));
 
-        while let Some((cmp::Reverse(path), k, i, j)) = queue.pop() {
+        while let Some((cmp::Reverse(path), k, i, j)) = queue.pop_front() {
             if i == n - 1 && j == m - 1 {
                 return path;
             }
@@ -40,7 +40,7 @@ impl Solution {
                     }
                     visited[di][dj] = next_k;
 
-                    queue.push((cmp::Reverse(path + 1), next_k, di, dj));
+                    queue.push_back((cmp::Reverse(path + 1), next_k, di, dj));
                 });
         }
 
