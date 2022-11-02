@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::cmp;
 
 const DIRECTIONS: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
@@ -17,9 +16,9 @@ impl Solution {
         visited[0][0] = k;
 
         let mut queue = VecDeque::new();
-        queue.push_back((cmp::Reverse(0), k, 0, 0));
+        queue.push_back((0, k, 0, 0));
 
-        while let Some((cmp::Reverse(path), k, i, j)) = queue.pop_front() {
+        while let Some((path, k, i, j)) = queue.pop_front() {
             if i == n - 1 && j == m - 1 {
                 return path;
             }
@@ -40,7 +39,7 @@ impl Solution {
                     }
                     visited[di][dj] = next_k;
 
-                    queue.push_back((cmp::Reverse(path + 1), next_k, di, dj));
+                    queue.push_back((path + 1, next_k, di, dj));
                 });
         }
 
