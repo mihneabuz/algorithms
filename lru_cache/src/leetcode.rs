@@ -29,11 +29,11 @@ impl LRUCache {
 
     fn get(&mut self, key: i32) -> i32 {
         match self.map.get(&key) {
-            Some(idx) => {
-                let entry = self.vec[*idx].clone();
+            Some(&idx) => {
+                let entry = self.vec[idx].clone();
 
                 if entry.key == key {
-                    self.move_to_front(*idx);
+                    self.move_to_front(idx);
                     entry.val
                 } else {
                     -1
