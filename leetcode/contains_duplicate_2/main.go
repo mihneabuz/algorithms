@@ -3,17 +3,17 @@ package main
 import "fmt"
 
 func containsNearbyDuplicate(nums []int, k int) bool {
-  seen := make(map[int]int)
+	seen := make(map[int]int)
 
-  for i, x := range nums {
-    j, found := seen[x]
+	for i, x := range nums {
+		j, found := seen[x]
 
-    if found && i - j <= k {
-      return true
-    }
+		if found && i-j <= k {
+			return true
+		}
 
-    seen[x] = i
-  }
+		seen[x] = i
+	}
 
 	return false
 }
